@@ -29,14 +29,17 @@ public class WishlistPanel extends JPanel {
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton add = new JButton("Add item");
+        JButton update = new JButton("Update selected");
         JButton remove = new JButton("Remove selected");
         JButton refresh = new JButton("Refresh");
         buttons.add(add);
+        buttons.add(update);
         buttons.add(remove);
         buttons.add(refresh);
         add(buttons, BorderLayout.SOUTH);
 
         add.addActionListener(e -> addItem());
+        update.addActionListener(e -> updateItem());
         remove.addActionListener(e -> removeItem());
         refresh.addActionListener(e -> refresh());
         refresh();
@@ -69,6 +72,35 @@ public class WishlistPanel extends JPanel {
                 JOptionPane.PLAIN_MESSAGE, null, items.toArray(), items.get(0));
         if (choice != null) {
             Response res = conn.send(new Request(RequestType.ADD_WISH_ITEM).set("catalogItemId", choice.getId()));
+            if (!res.isSuccess()) JOptionPane.showMessageDialog(this, res.getMessage());
+            refresh();
+        }
+    }
+
+    private void updateItem() {
+        WishItem sel = list.getSelectedValue();
+        if (sel == null) {
+            JOptionPane.showMessageDialog(this, "Select an item first.");
+            return;
+        }
+        if (sel.isPurchased()) {
+            JOptionPane.showMessageDialog(this, "This gift is already fully funded and can't be changed.");
+            return;
+        }
+        Response cat = conn.send(new Request(RequestType.GET_CATALOG));
+        if (!cat.isSuccess() || !(cat.getData() instanceof List)) {
+            JOptionPane.showMessageDialog(this, "Could not load the catalog.");
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        List<CatalogItem> items = (List<CatalogItem>) cat.getData();
+        CatalogItem choice = (CatalogItem) JOptionPane.showInputDialog(
+                this, "Replace \"" + sel.getItemName() + "\" with:", "Update wish list item",
+                JOptionPane.PLAIN_MESSAGE, null, items.toArray(), items.get(0));
+        if (choice != null) {
+            Response res = conn.send(new Request(RequestType.UPDATE_WISH_ITEM)
+                    .set("wishItemId", sel.getId())
+                    .set("catalogItemId", choice.getId()));
             if (!res.isSuccess()) JOptionPane.showMessageDialog(this, res.getMessage());
             refresh();
         }

@@ -19,6 +19,15 @@ get notifications.
 
 ---
 
+## Screenshot
+
+![My Wish List, running live](docs/wishlist-demo.png)
+
+*Signed in as Abdelrahman — "My Wish List" tab with two real items, right after using
+**Update selected** to swap "Coffee Mug" for "The Alchemist (Novel)".*
+
+---
+
 ## Team roles & contributions
 
 | # | Role | Main files |
@@ -95,3 +104,21 @@ get notifications.
   online users are tracked in a `ConcurrentHashMap` so notifications can be pushed.
 - The client has **one reader thread**: a `Response` is a reply to a request, a
   `Notification` is a live push — they are told apart by their type.
+
+---
+
+## What we did in this pass
+
+The spec asks for **Create, Update, Delete** on the wish list, but the client only
+had *Add* and *Remove* — `UPDATE_WISH_ITEM` already existed end-to-end on the
+protocol and server (`WishlistDAO.updateWishItem`), it just had no button. Fixed:
+
+- Added an **"Update selected"** button to `client/ui/WishlistPanel.java` that lets
+  you swap a not-yet-funded item for a different catalog item, reusing the existing
+  `UPDATE_WISH_ITEM` request.
+- Verified the whole app end-to-end against a real local MySQL instance: compiled
+  with Maven, ran the actual server + client, registered a user, added an item,
+  updated it, and confirmed the change landed in the database — then ran it again
+  manually through the real GUI (screenshot above) as `Abdelrahman`.
+- Confirmed the project opens and runs the same way from NetBeans (plain Maven
+  project, JDK 17 target) as it does from IntelliJ.
